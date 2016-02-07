@@ -140,6 +140,11 @@ class EasyAdminTwigExtension extends \Twig_Extension
             }
 
             if ('image' === $fieldType) {
+                // avoid displaying broken images when the entity defines no image
+                if (empty($value)) {
+                    return $twig->render($entityConfiguration['templates']['label_empty'], $templateParameters);
+                }
+
                 // absolute URLs (http or https) and protocol-relative URLs (//) are rendered unmodified
                 if (1 === preg_match('/^(http[s]?|\/\/).*/i', $value)) {
                     $imageUrl = $value;
@@ -227,8 +232,7 @@ class EasyAdminTwigExtension extends \Twig_Extension
     /**
      * Returns the actions configured for each item displayed in the given view.
      * This method is needed because some actions are displayed globally for the
-     * entire view (e.g. 'new' action in 'list' view) and other default actions
-     * are treated in a special way (e.g. 'delete' action in 'edit'/'show' views).
+     * entire view (e.g. 'new' action in 'list' view).
      *
      * @param string $entityName
      *
@@ -240,14 +244,11 @@ class EasyAdminTwigExtension extends \Twig_Extension
         $disabledActions = $entityConfiguration['disabled_actions'];
         $viewActions = $entityConfiguration[$view]['actions'];
 
-        // Each view displays some actions in special ways (e.g. the 'new' button
-        // in the 'list' view). Those special actions shouldn't be displayed for
-        // each item as a regular action.
         $actionsExcludedForItems = array(
-            'list' => array('list', 'new', 'search'),
-            'edit' => array('list', 'delete'),
-            'new' => array('list'),
-            'show' => array('list', 'delete'),
+            'list' => array('new', 'search'),
+            'edit' => array(),
+            'new' => array(),
+            'show' => array(),
         );
         $excludedActions = $actionsExcludedForItems[$view];
 

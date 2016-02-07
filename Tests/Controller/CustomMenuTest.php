@@ -11,9 +11,7 @@
 
 namespace JavierEguiluz\Bundle\EasyAdminBundle\Tests\Controller;
 
-use Symfony\Component\DomCrawler\Crawler;
 use JavierEguiluz\Bundle\EasyAdminBundle\Tests\Fixtures\AbstractTestCase;
-use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
 
 class CustomMenuTest extends AbstractTestCase
 {
@@ -47,7 +45,7 @@ class CustomMenuTest extends AbstractTestCase
 
     public function testBackendHomepageConfig()
     {
-        $crawler = $this->getBackendHomepage();
+        $this->getBackendHomepage();
         $backendConfig = $this->client->getContainer()->getParameter('easyadmin.config');
 
         $this->assertArraySubset(array(
@@ -58,7 +56,7 @@ class CustomMenuTest extends AbstractTestCase
 
     public function testDefaultMenuItem()
     {
-        $crawler = $this->getBackendHomepage();
+        $this->getBackendHomepage();
         $backendConfig = $this->client->getContainer()->getParameter('easyadmin.config');
 
         $this->assertArraySubset(array(

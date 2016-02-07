@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="{{ asset('bundles/easyadmin/stylesheet/bootstrap-toggle.min.css') }}">
 {% endblock %}
 
-{% block page_title %}
+{% block content_title %}
     {% if 'search' == app.request.get('action') %}
         {{ 'search.page_title'|transchoice(count = paginator.nbResults, domain = 'EasyAdminBundle')|raw }}
     {% else %}
@@ -33,8 +33,6 @@
         {{ _entity_config.list.title|default(_default_title)|trans(_trans_parameters) }}
     {% endif %}
 {% endblock %}
-
-{% block content_title %}{{ block('page_title') }}{% endblock %}
 
 {% block global_actions %}
     {% if easyadmin_action_is_enabled_for_list_view('search', _entity_config.name) %}
@@ -83,7 +81,7 @@
                 {% for field, metadata in fields %}
                     {% set isSortingField = metadata.property == app.request.get('sortField') %}
                     {% set nextSortDirection = isSortingField ? (app.request.get('sortDirection') == 'DESC' ? 'ASC' : 'DESC') : 'DESC' %}
-                    {% set _column_label = metadata.label ? metadata.label|trans(_trans_parameters) : field|humanize %}
+                    {% set _column_label = (metadata.label ?: field|humanize)|trans(_trans_parameters) %}
                     {% set _column_icon = isSortingField ? (nextSortDirection == 'DESC' ? 'fa-caret-up' : 'fa-caret-down') : 'fa-sort' %}
 
                     <th data-property-name="{{ metadata.property }}" class="{{ isSortingField ? 'sorted' }} {{ metadata.virtual ? 'virtual' }} {{ metadata.dataType|lower }}">
@@ -114,7 +112,7 @@
                 <tr data-id="{{ _item_id }}">
                     {% for field, metadata in fields %}
                         {% set isSortingField = metadata.property == app.request.get('sortField') %}
-                        {% set _column_label =  metadata.label ? metadata.label|trans(_trans_parameters) : field|humanize %}
+                        {% set _column_label =  (metadata.label ?: field|humanize)|trans(_trans_parameters)  %}
 
                         <td data-label="{{ _column_label }}" class="{{ isSortingField ? 'sorted' }} {{ metadata.dataType|lower }}">
                             {{ easyadmin_render_field_for_list_view(_entity_config.name, item, metadata) }}
@@ -125,20 +123,12 @@
                         {% set _column_label =  'list.row_actions'|trans(_trans_parameters, 'EasyAdminBundle') %}
                         <td data-label="{{ _column_label }}" class="actions">
                         {% block item_actions %}
-                            {% for _action in _list_item_actions %}
-                                {% if 'method' == _action.type %}
-                                    {% set _action_href = path('easyadmin', _request_parameters|merge({ action: _action.name, id: _item_id })) %}
-                                {% elseif 'route' == _action.type %}
-                                    {% set _action_href = path(_action.name, _request_parameters|merge({ action: _action.name, id: _item_id })) %}
-                                {% endif %}
-
-                                <a class="{{ _action.css_class|default('') }}" href="{{ _action_href }}">{% spaceless %}
-                                    {% if _action.icon %}<i class="fa fa-{{ _action.icon }}"></i>{% endif %}
-                                    {% if _action.label is defined and not _action.label is empty %}
-                                        {{ _action.label|trans(_trans_parameters|merge({ '%entity_id%': _item_id })) }}
-                                    {% endif %}
-                                {% endspaceless %}</a>
-                            {% endfor %}
+                            {{ include('@EasyAdmin/default/includes/_actions.html.twig', {
+                                actions: _list_item_actions,
+                                request_parameters: _request_parameters,
+                                trans_parameters: _trans_parameters,
+                                item_id: _item_id
+                            }, with_context = false) }}
                         {% endblock item_actions %}
                         </td>
                     {% endif %}
@@ -165,7 +155,7 @@
             : app.request.requestUri
         %}
 
-        {{ include('@EasyAdmin/default/includes/delete_form.html.twig', {
+        {{ include('@EasyAdmin/default/includes/_delete_form.html.twig', {
             view: 'list',
             referer: referer|url_encode,
             delete_form: delete_form_template,
